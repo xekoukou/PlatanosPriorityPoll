@@ -28,7 +28,7 @@ int
 main (void)
 {
 
-    void *ctx = zctx_new ();
+    zctx_t *ctx = zctx_new ();
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
     zsocket_connect (dealer, "tcp://192.168.1.3:9001");

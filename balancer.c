@@ -28,7 +28,7 @@ int
 main (void)
 {
 
-    void *ctx = zctx_new ();
+    zctx_t *ctx = zctx_new ();
 
     void *router_imp = zsocket_new (ctx, ZMQ_ROUTER);
     zsocket_bind (router_imp, "tcp://192.168.1.3:9000");
