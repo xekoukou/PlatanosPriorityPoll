@@ -49,25 +49,25 @@ main (void)
      zmsg_add(empty,zframe_new(NULL,0));
     zmsg_send (&empty,pub);
 
-    zmq_pollitem_t pollitems[2] = { {router_imp, 0, ZMQ_POLLIN}
-    , {router_unimp, 0, ZMQ_POLLIN}
-    };
+    zmq_pollitem_t pollitem_imp[1] = { {router_imp, 0, ZMQ_POLLIN}};
+    zmq_pollitem_t pollitem_unimp[1] = { {router_unimp, 0, ZMQ_POLLIN}};
 
     int i;
     int imp_counter = 0;
     for (i = 0; i < 2000000; i++) {
 
-        zmq_poll (pollitems, 2, -1);
+        zmq_poll (pollitem_imp, 1, -1);
 
-        if (pollitems[0].revents & ZMQ_POLLIN) {
+        if (pollitem_imp[0].revents & ZMQ_POLLIN) {
             zmsg_t *msg = zmsg_recv (router_imp);
             zmsg_destroy (&msg);
             time[imp_counter] = zclock_time ();
             imp_counter++;
             goto end;
         }
+        zmq_poll (pollitem_unimp, 1, -1);
 
-        if (pollitems[1].revents & ZMQ_POLLIN) {
+        if (pollitem_unimp[0].revents & ZMQ_POLLIN) {
             zmsg_t *msg = zmsg_recv (router_unimp);
             zmsg_destroy (&msg);
         }
