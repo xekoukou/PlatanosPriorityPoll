@@ -75,6 +75,11 @@ main (void)
 
     }
 
+    zmsg_t * not_empty=zmsg_new();
+     zmsg_add(not_empty,zframe_new(NULL,0));
+    zmsg_send (&not_empty,pub);
+
+
     zmsg_t *msg = zmsg_recv (router_imp);
     zmsg_unwrap (msg);
     int64_t *prev_time = malloc (sizeof (int64_t) * 1000000);

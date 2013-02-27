@@ -58,6 +58,12 @@ main (void)
 
     }
 
+    zmq_poll (pollitem, 1, -1);
 
+    msg = zmsg_new ();
+    frame = zframe_new (time, sizeof(time));
+    zmsg_add (msg, frame);
+
+   zclock_sleep(3000);
 
 }
