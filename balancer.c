@@ -64,12 +64,14 @@ main (void)
             zmsg_destroy (&msg);
             time[imp_counter] = zclock_time ();
             imp_counter++;
+            printf("i was in the source_imp loop:%d\n",i);
             goto end;
         }
 
         if (pollitems[1].revents & ZMQ_POLLIN) {
             zmsg_t *msg = zmsg_recv (router_unimp);
             zmsg_destroy (&msg);
+            printf("i was in the source_unimp loop:%d\n",i);
         }
       end:;
 
@@ -80,7 +82,9 @@ main (void)
     zmsg_send (&empty,pub);
 
 
+    printf("Before receiving th time data:\n");
     zmsg_t *msg = zmsg_recv (router_imp);
+    printf("After receiving th time data\n");
     zmsg_unwrap (msg);
     int64_t *prev_time = malloc (sizeof (int64_t) * 1000000);
     zframe_t *frame = zmsg_pop (msg);
