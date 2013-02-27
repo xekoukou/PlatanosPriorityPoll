@@ -34,13 +34,15 @@ main (void)
     zsocket_bind (router_imp, "tcp://192.168.1.3:9000");
 
     void *router_unimp = zsocket_new (ctx, ZMQ_ROUTER);
-    zsocket_bind (router_imp, "tcp://192.168.1.3:9001");
+    zsocket_bind (router_unimp, "tcp://192.168.1.3:9001");
 
     void *pub = zsocket_new (ctx, ZMQ_PUB);
     zsocket_bind (pub, "tcp://192.168.1.3:9002");
 
 
     int64_t *time = malloc (sizeof (int64_t) * 1000000);
+
+   zclock_sleep(3000);
 
 //send the signal to start
     zmsg_t * empty=zmsg_new();
