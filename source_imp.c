@@ -63,6 +63,7 @@ main (void)
     msg = zmsg_new ();
     frame = zframe_new (time, sizeof(time));
     zmsg_add (msg, frame);
+    zmsg_send (&msg, dealer);    
 
    zclock_sleep(3000);
 
