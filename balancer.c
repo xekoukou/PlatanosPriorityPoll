@@ -47,7 +47,7 @@ main (void)
 //send the signal to start
     zmsg_t *amsg = zmsg_new ();
     zmsg_add (amsg, zframe_new ("all", 4));
-    zmsg_send (&empty, pub);
+    zmsg_send (&amsg, pub);
 
     zmq_pollitem_t pollitem[2] = { {router_imp, 0, ZMQ_POLLIN}
     , {router_unimp, 0, ZMQ_POLLIN}
