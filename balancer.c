@@ -41,7 +41,7 @@ main (void)
     zsocket_bind (router_unimp, "tcp://192.168.1.3:9001");
 
     void *pub = zsocket_new (ctx, ZMQ_PUB);
-    zsocket_bind (pub, "tcp://127.0.0.1:9002");
+    zsocket_bind (pub, "tcp://192.168.1.3:9002");
 
 
     int64_t time;
