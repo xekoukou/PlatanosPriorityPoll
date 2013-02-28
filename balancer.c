@@ -63,11 +63,11 @@ main (void)
 
         if (pollitem[0].revents & ZMQ_POLLIN) {
             zmsg_t *msg = zmsg_recv (router_imp);
+            time[imp_counter] = zclock_time ();
             if (!msg) {
                 exit (-1);
             }
             zmsg_destroy (&msg);
-            time[imp_counter] = zclock_time ();
             imp_counter++;
 
         }
