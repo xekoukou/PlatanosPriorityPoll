@@ -51,7 +51,7 @@ main (void)
     zmsg_add (msg, frame);
 
     int i;
-    for (i = 0; i < 1000000; i++) {
+    for (i = 0; i < 999999; i++) {
         zmsg_t *nmsg = zmsg_dup (msg);
 
         time[i] = zclock_time ();
@@ -59,6 +59,9 @@ main (void)
 
 
     }
+    msg=zmsg_new();
+    zmsg_add(msg,zframe_new("finished",8));
+    zmsg_send (&msg, dealer);
 
 
 
