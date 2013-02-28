@@ -20,6 +20,8 @@
 #include<czmq.h>
 #include<stdint.h>
 #include<stddef.h>
+#include<stdio.h>
+#include<stdlib.h>
 
 #define SIZE 50
 
@@ -39,7 +41,7 @@ main (void)
     zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "all", 4);
     zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "imp", 4);
 
-    int64_t *time = malloc (sizeof (int64_t) * 1000000);
+    int64_t time;
 
     zmq_pollitem_t pollitem[1] = { {sub, 0, ZMQ_POLLIN}
     };
@@ -47,15 +49,16 @@ main (void)
     zmq_poll (pollitem, 1, -1);
     zmsg_recv (sub);
 
+    char blob[50];
     zmsg_t *msg = zmsg_new ();
-    zframe_t *frame = zframe_new (NULL, SIZE);
+    zframe_t *frame = zframe_new (blob, SIZE);
     zmsg_add (msg, frame);
+        
+    time = zclock_time ();
 
     int i;
     for (i = 0; i < 1000000; i++) {
         zmsg_t *nmsg = zmsg_dup (msg);
-
-        time[i] = zclock_time ();
         zmsg_send (&nmsg, dealer);
 
 
@@ -64,9 +67,11 @@ main (void)
     zmq_poll (pollitem, 1, -1);
 
     msg = zmsg_new ();
-    frame = zframe_new (time, sizeof (time));
+    frame = zframe_new (&time, sizeof (int64_t));
     zmsg_add (msg, frame);
     zmsg_send (&msg, dealer);
+
+    zclock_sleep (3000);
 
     zctx_destroy (&ctx);
 }

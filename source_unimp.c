@@ -32,15 +32,15 @@ main (void)
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
     zsocket_set_linger (dealer, -1);
-    zsocket_set_sndhwm (dealer,500000000);
-zsocket_connect (dealer, "tcp://192.168.1.3:9001");
+    zsocket_set_sndhwm (dealer, 500000000);
+    zsocket_connect (dealer, "tcp://192.168.1.3:9001");
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
     zsocket_connect (sub, "tcp://192.168.1.3:9002");
     zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "all", 4);
 
 
-    int64_t *time = malloc (sizeof (int64_t) * 1000000);
+    int64_t time=zclock_time();
 
     zmq_pollitem_t pollitem[1] = { {sub, 0, ZMQ_POLLIN}
     };
@@ -48,23 +48,38 @@ zsocket_connect (dealer, "tcp://192.168.1.3:9001");
     zmq_poll (pollitem, 1, -1);
     zmsg_recv (sub);
 
+    char blob[SIZE];
     zmsg_t *msg = zmsg_new ();
-    zframe_t *frame = zframe_new (NULL, SIZE);
+    zframe_t *frame = zframe_new (blob, SIZE);
     zmsg_add (msg, frame);
 
     int i;
-    for (i = 0; i < 999999; i++) {
+    for (i = 0; i < 1999999; i++) {
         zmsg_t *nmsg = zmsg_dup (msg);
 
-        time[i] = zclock_time ();
         zmsg_send (&nmsg, dealer);
 
 
     }
+    zmsg_destroy (&msg);
     msg = zmsg_new ();
     zmsg_add (msg, zframe_new ("finished", 8));
     zmsg_send (&msg, dealer);
 
-    zctx_destroy(&ctx);
+
+
+    zmq_poll (pollitem, 1, -1);
+
+    msg = zmsg_new ();
+    frame = zframe_new (&time, sizeof (int64_t));
+    zmsg_add (msg, frame);
+    zmsg_send (&msg, dealer);
+
+
+
+
+    zclock_sleep (3000);
+
+    zctx_destroy (&ctx);
 
 }
