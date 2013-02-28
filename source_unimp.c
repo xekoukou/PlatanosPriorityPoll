@@ -36,7 +36,7 @@ zsocket_connect (dealer, "tcp://192.168.1.3:9001");
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
     zsocket_connect (sub, "tcp://192.168.1.3:9002");
-    zmq_setsockopt (sub, ZMQ_SUBSCRIBE, NULL, 0);
+    zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "all", 4);
 
 
     int64_t *time = malloc (sizeof (int64_t) * 1000000);

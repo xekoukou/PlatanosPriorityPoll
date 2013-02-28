@@ -45,8 +45,8 @@ main (void)
     zclock_sleep (3000);
 
 //send the signal to start
-    zmsg_t *empty = zmsg_new ();
-    zmsg_add (empty, zframe_new (NULL, 0));
+    zmsg_t *amsg = zmsg_new ();
+    zmsg_add (amsg, zframe_new ("all", 4));
     zmsg_send (&empty, pub);
 
     zmq_pollitem_t pollitem[2] = { {router_imp, 0, ZMQ_POLLIN}
@@ -91,9 +91,9 @@ main (void)
     }
     printf ("msgs received:%d\n", i);
 
-    empty = zmsg_new ();
-    zmsg_add (empty, zframe_new (NULL, 0));
-    zmsg_send (&empty, pub);
+    amsg = zmsg_new ();
+    zmsg_add (amsg, zframe_new ("imp", 4));
+    zmsg_send (&amsg, pub);
 
 
     printf ("Before receiving the time data:\n");
