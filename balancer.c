@@ -57,7 +57,9 @@ main (void)
     int imp_counter = 0;
     for (i = 0; i < 2000000; i++) {
 
-        zmq_poll (pollitem, 2, -1);
+        if (zmq_poll (pollitem, 2, -1) == -1) {
+            exit (-1);
+        }
 
         if (pollitem[0].revents & ZMQ_POLLIN) {
             zmsg_t *msg = zmsg_recv (router_imp);
