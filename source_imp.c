@@ -27,51 +27,62 @@
 
 
 int
-main (void)
+main (int argc, char *argv[])
 {
+
+if(argc!=3){
+exit(-1);
+}
+
+int numb_msgs=atoi(argv[2]);
 
     zctx_t *ctx = zctx_new ();
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
     zsocket_set_linger (dealer, -1);
-    zsocket_connect (dealer, "tcp://192.168.1.3:9000");
+    zsocket_connect (dealer, "%s:9000",argv[1]);
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
-    zsocket_connect (sub, "tcp://192.168.1.3:9002");
+    zsocket_connect (sub, "%s:9002",argv[1]);
     zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "all", 4);
-    zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "imp", 4);
 
-    int64_t time;
+    int64_t time[2];
 
     zmq_pollitem_t pollitem[1] = { {sub, 0, ZMQ_POLLIN}
     };
 
     zmq_poll (pollitem, 1, -1);
-    zmsg_recv (sub);
+    zmsg_t *signal=zmsg_recv (sub);
+    zmsg_destroy(&signal);
 
-    char blob[50];
+    char blob[SIZE]={0};
     zmsg_t *msg = zmsg_new ();
     zframe_t *frame = zframe_new (blob, SIZE);
     zmsg_add (msg, frame);
         
-    time = zclock_time ();
+    time[0] = zclock_time ();
 
     int i;
-    for (i = 0; i < 1000000; i++) {
+    for (i = 0; i < numb_msgs; i++) {
         zmsg_t *nmsg = zmsg_dup (msg);
         zmsg_send (&nmsg, dealer);
 
 
     }
+    time[1] = zclock_time ();
+
+    zmsg_destroy(&msg);
 
     zmq_poll (pollitem, 1, -1);
+    msg=zmsg_recv(sub);
+    zmsg_destroy(&msg);
+
 
     msg = zmsg_new ();
-    frame = zframe_new (&time, sizeof (int64_t));
+    frame = zframe_new (time, sizeof (int64_t)*2);
     zmsg_add (msg, frame);
     zmsg_send (&msg, dealer);
 
-    zclock_sleep (3000);
 
     zctx_destroy (&ctx);
 }

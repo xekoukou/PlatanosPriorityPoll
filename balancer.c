@@ -27,26 +27,33 @@
 
 
 int
-main (void)
+main (int argc, char *argv[])
 {
+
+if(argc!=3){
+exit(-1);
+}
+
+int numb_msgs=atoi(argv[2]);
 
     zctx_t *ctx = zctx_new ();
 
     void *router_imp = zsocket_new (ctx, ZMQ_ROUTER);
     zsocket_set_rcvhwm (router_imp, 500000000);
-    zsocket_bind (router_imp, "tcp://192.168.1.3:9000");
+    zsocket_bind (router_imp, "%s:9000",argv[1]);
 
     void *router_unimp = zsocket_new (ctx, ZMQ_ROUTER);
     zsocket_set_rcvhwm (router_unimp, 500000000);
-    zsocket_bind (router_unimp, "tcp://192.168.1.3:9001");
+    zsocket_bind (router_unimp, "%s:9001",argv[1]);
 
     void *pub = zsocket_new (ctx, ZMQ_PUB);
-    zsocket_bind (pub, "tcp://192.168.1.3:9002");
+    zsocket_bind (pub, "%s:9002",argv[1]);
 
 
-    int64_t time;
+    int64_t time[3];
 
-    zclock_sleep (3000);
+
+zclock_sleep(1000);
 
 //send the signal to start
     zmsg_t *amsg = zmsg_new ();
@@ -59,6 +66,7 @@ main (void)
 
     int i = 0;
     int imp_counter = 0;
+    int once=1;
     while (1) {
         i++;
         if (zmq_poll (pollitem, 2, -1) == -1) {
@@ -72,18 +80,27 @@ main (void)
             }
             zmsg_destroy (&msg);
             imp_counter++;
+           if(imp_counter==numb_msgs){
+time[0]=zclock_time();
+}
 
         }
         else {
 
             if (pollitem[1].revents & ZMQ_POLLIN) {
+                if(once){
+time[1]=zclock_time();
+once=0;
+}
+
                 zmsg_t *msg = zmsg_recv (router_unimp);
                 if (!msg) {
                     exit (-1);
                 }
-                zmsg_unwrap (msg);
+                zframe_t *frame=zmsg_unwrap (msg);
+                zframe_destroy(&frame);
                 if (0 == memcmp ("finished", zframe_data (zmsg_first (msg)), 8)) {
-                time = zclock_time ();
+                time[2] = zclock_time ();
                     break;
                 }
 
@@ -101,29 +118,37 @@ main (void)
 
 
     zmsg_t *msg = zmsg_recv (router_imp);
-    zmsg_unwrap (msg);
-    int64_t time_imp;
-    zframe_t *frame = zmsg_pop (msg);
-    memcpy (&time_imp, zframe_data (frame), zframe_size (frame));
+    zframe_t *frame=zmsg_unwrap (msg);
+     zframe_destroy(&frame);
+    int64_t time_imp[2];
+    frame = zmsg_pop (msg);
+    memcpy (time_imp, zframe_data (frame), zframe_size (frame));
+     zframe_destroy(&frame);
+                zmsg_destroy (&msg);
 
     msg = zmsg_recv (router_unimp);
-    zmsg_unwrap (msg);
-    int64_t time_unimp;
+    frame=zmsg_unwrap (msg);
+     zframe_destroy(&frame);
+    int64_t time_unimp[2];
     frame = zmsg_pop (msg);
-    memcpy (&time_unimp, zframe_data (frame), zframe_size (frame));
+    memcpy (time_unimp, zframe_data (frame), zframe_size (frame));
+     zframe_destroy(&frame);
+                zmsg_destroy (&msg);
 
 
 
 //compute average latency
 
-    int64_t latency = 0;
+    printf ("\nTime when important msgs started to be sent: %lld\n", time_imp[0]);
+    printf ("\nTime when important msgs were processed: %lld\n",time[0]);
+    printf ("\nDifference: %lld\n",time[0]-time_imp[0]);
+
+    printf ("\nTime when unimportant msgs started to be sent: %lld\n", time_unimp[0]);
+    printf ("\nTime when inimportant msgs were processed: %lld\n",time[2]);
+    printf ("\nDifference: %lld\n",time[2]-time_unimp[0]);
 
 
-    latency=(time-time_imp)/1000000;
-    printf ("\nAverage latency of important msgs: %lld\n", latency);
-
-    latency=(time-time_unimp)/2000000;
-    printf ("\nAverage latency of unimportant msgs: %lld\n", latency);
+    printf ("\nTime when unimportant msgs started to be processed: %lld\n",time[1]);
 
 
 
