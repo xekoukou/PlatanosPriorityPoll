@@ -44,6 +44,7 @@ main (void)
     };
 
     zmq_poll (pollitem, 1, -1);
+    zmsg_recv (sub);
 
     zmsg_t *msg = zmsg_new ();
     zframe_t *frame = zframe_new (NULL, SIZE);

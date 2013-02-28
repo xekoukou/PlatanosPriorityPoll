@@ -31,7 +31,7 @@ main (void)
     zctx_t *ctx = zctx_new ();
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
-    zsocket_set_linger(dealer,-1);
+    zsocket_set_linger (dealer, -1);
     zsocket_connect (dealer, "tcp://192.168.1.3:9000");
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
@@ -44,6 +44,7 @@ main (void)
     };
 
     zmq_poll (pollitem, 1, -1);
+    zmsg_recv (sub);
 
     zmsg_t *msg = zmsg_new ();
     zframe_t *frame = zframe_new (NULL, SIZE);
@@ -62,9 +63,9 @@ main (void)
     zmq_poll (pollitem, 1, -1);
 
     msg = zmsg_new ();
-    frame = zframe_new (time, sizeof(time));
+    frame = zframe_new (time, sizeof (time));
     zmsg_add (msg, frame);
-    zmsg_send (&msg, dealer);    
+    zmsg_send (&msg, dealer);
 
-    zctx_destroy(&ctx);
+    zctx_destroy (&ctx);
 }
