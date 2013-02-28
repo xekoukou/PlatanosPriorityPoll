@@ -31,9 +31,11 @@ main (void)
     zctx_t *ctx = zctx_new ();
 
     void *router_imp = zsocket_new (ctx, ZMQ_ROUTER);
+    zsocket_set_rcvhwm (router_imp,500000000);
     zsocket_bind (router_imp, "tcp://192.168.1.3:9000");
 
     void *router_unimp = zsocket_new (ctx, ZMQ_ROUTER);
+    zsocket_set_rcvhwm (router_unimp,500000000);
     zsocket_bind (router_unimp, "tcp://192.168.1.3:9001");
 
     void *pub = zsocket_new (ctx, ZMQ_PUB);

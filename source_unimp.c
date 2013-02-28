@@ -32,6 +32,7 @@ main (void)
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
     zsocket_set_linger (dealer, -1);
+    zsocket_set_sndhwm (dealer,500000000);
 zsocket_connect (dealer, "tcp://192.168.1.3:9001");
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
