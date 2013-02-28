@@ -53,9 +53,9 @@ main (void)
     , {router_unimp, 0, ZMQ_POLLIN}
     };
 
-    int i=0;
+    int i = 0;
     int imp_counter = 0;
-    while(1){
+    while (1) {
         i++;
         if (zmq_poll (pollitem, 2, -1) == -1) {
             exit (-1);
@@ -78,9 +78,10 @@ main (void)
                 if (!msg) {
                     exit (-1);
                 }
-               if(0== memcmp("finished",zframe_data(zmsg_first(msg)),8)){
-		break;
-                 }
+                zmsg_unwrap (msg);
+                if (0 == memcmp ("finished", zframe_data (zmsg_first (msg)), 8)) {
+                    break;
+                }
 
                 zmsg_destroy (&msg);
             }
@@ -88,7 +89,7 @@ main (void)
 
 
     }
-    printf("msgs received:%d\n",i);
+    printf ("msgs received:%d\n", i);
 
     empty = zmsg_new ();
     zmsg_add (empty, zframe_new (NULL, 0));

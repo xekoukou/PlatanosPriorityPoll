@@ -59,8 +59,8 @@ main (void)
 
 
     }
-    msg=zmsg_new();
-    zmsg_add(msg,zframe_new("finished",8));
+    msg = zmsg_new ();
+    zmsg_add (msg, zframe_new ("finished", 8));
     zmsg_send (&msg, dealer);
 
 
