@@ -20,6 +20,7 @@
 #include<czmq.h>
 #include<stdint.h>
 #include<stddef.h>
+#include<stdlib.h>
 
 #define SIZE 50
 
@@ -28,69 +29,67 @@ int
 main (int argc, char *argv[])
 {
 
-if(argc!=3){
-exit(-1);
-}
+    if (argc != 5) {
+        exit (-1);
+    }
 
-int numb_msgs=atoi(argv[2]);
+    int numb_msgs = atoi (argv[2]);
+    int delay = atoi (argv[3]);
+    int speed = atoi (argv[4]);  //per 10000msgs how many mill sleep
 
     zctx_t *ctx = zctx_new ();
 
     void *dealer = zsocket_new (ctx, ZMQ_DEALER);
     zsocket_set_linger (dealer, -1);
     zsocket_set_sndhwm (dealer, 500000000);
-    zsocket_connect (dealer, "%s:9001",argv[1]);
+    zsocket_connect (dealer, "%s:9001", argv[1]);
 
     void *sub = zsocket_new (ctx, ZMQ_SUB);
-    zsocket_connect (sub, "%s:9002",argv[1]);
+    zsocket_connect (sub, "%s:9002", argv[1]);
     zmq_setsockopt (sub, ZMQ_SUBSCRIBE, "all", 4);
 
 
     int64_t time[2];
 
+    unsigned char *random = malloc (numb_msgs);
+    int i;
+    for (i = 0; i < numb_msgs; i++) {
+        random[i] = rand () % 100;
+    }
+
     zmq_pollitem_t pollitem[1] = { {sub, 0, ZMQ_POLLIN}
     };
 
     zmq_poll (pollitem, 1, -1);
-    zmsg_t *signal=zmsg_recv (sub);
-    zmsg_destroy(&signal);
+    zmsg_t *signal = zmsg_recv (sub);
+    zmsg_destroy (&signal);
 
-    char blob[SIZE]={0};
+    char blob[SIZE] = { 0 };
     zmsg_t *msg = zmsg_new ();
     zframe_t *frame = zframe_new (blob, SIZE);
     zmsg_add (msg, frame);
 
-time[0]=zclock_time();
+zclock_sleep(delay);
 
-    int i;
-    for (i = 0; i < numb_msgs-1; i++) {
+    time[0] = zclock_time ();
+int j;
+    for (i = 0; i < numb_msgs/10000; i++) {
+    for (j = 0; j < 10000; j++) {
+    
         zmsg_t *nmsg = zmsg_dup (msg);
-
+        zmsg_push (nmsg, zframe_new (random + i, 1));
         zmsg_send (&nmsg, dealer);
-
-
     }
+zclock_sleep(speed);
+}
     zmsg_destroy (&msg);
-
-    msg = zmsg_new ();
-    zmsg_add (msg, zframe_new ("finished", 8));
-    zmsg_send (&msg, dealer);
-
-time[1]=zclock_time();
-
+    time[1] = zclock_time ();
     zmq_poll (pollitem, 1, -1);
-    signal=zmsg_recv (sub);
-    zmsg_destroy(&signal);
-
-
+    signal = zmsg_recv (sub);
+    zmsg_destroy (&signal);
     msg = zmsg_new ();
-    frame = zframe_new (time, sizeof (int64_t)*2);
+    frame = zframe_new (time, sizeof (int64_t) * 2);
     zmsg_add (msg, frame);
     zmsg_send (&msg, dealer);
-
-
-
-
     zctx_destroy (&ctx);
-
 }
